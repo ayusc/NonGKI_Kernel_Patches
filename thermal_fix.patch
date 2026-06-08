@@ -1,0 +1,23 @@
+--- a/arch/arm64/boot/dts/google/qcom-base/sdmmagpie.dtsi
++++ b/arch/arm64/boot/dts/google/qcom-base/sdmmagpie.dtsi
+@@ -XXXX,XX +XXXX,XX @@
+ 		qcom,pm6150l@5 {
+ 			...
+ 			qcom,amoled {
+ 				compatible = "qcom,amoled";
++				#address-cells = ;
++				#size-cells = ;
+ 				
+ 				oledb@e000 {
+ 					reg = <0xe000 0x100>;
+--- a/arch/arm64/boot/dts/google/qcom-base/sdmmagpie-thermal-overlay.dtsi
++++ b/arch/arm64/boot/dts/google/qcom-base/sdmmagpie-thermal-overlay.dtsi
+@@ -12,6 +12,8 @@
+  * GNU General Public License for more details.
+  */
+ 
++#include <dt-bindings/thermal/thermal.h>
++
+ &thermal_zones {
+ 	rf-pa0-therm-adc {
+ 		status = "disabled";
