@@ -1,0 +1,58 @@
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index c2b18176b..5b4fdceb2 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -19,6 +19,10 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/uaccess.h>
+ #include <linux/mm_inline.h>
++#include <linux/ctype.h>
++#if defined(CONFIG_KSU_SUSFS_SUS_KSTAT) || defined(CONFIG_KSU_SUSFS_SUS_MAP) || defined(CONFIG_KSU_SUSFS_OPEN_REDIRECT)
++#include <linux/susfs_def.h>
++#endif // #if defined(CONFIG_KSU_SUSFS_SUS_KSTAT) || defined(CONFIG_KSU_SUSFS_SUS_MAP) || defined(CONFIG_KSU_SUSFS_OPEN_REDIRECT)
+ 
+ #include <asm/elf.h>
+ #include <asm/tlb.h>
+
+diff --git a/mm/memory.c b/mm/memory.c
+index b4ba8a8ec..6c62ce1b4 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4571,11 +4571,12 @@ int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+ 	struct vm_area_struct *vma;
+ 	void *old_buf = buf;
+ 	int write = gup_flags & FOLL_WRITE;
++	down_read(&mm->mmap_sem);
++	
+ #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+ 	vma = find_vma(mm, addr);
+ #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+ 
+-	down_read(&mm->mmap_sem);
+ 	/* ignore errors, just check how much was successfully transferred */
+ 	while (len) {
+ 		int bytes, ret, offset;
+
+diff --git a/security/selinux/avc.c b/security/selinux/avc.c
+index 958f67201..1f5a94aaa 100644
+--- a/security/selinux/avc.c
++++ b/security/selinux/avc.c
+@@ -182,9 +182,6 @@ static void avc_dump_query(struct audit_buffer *ab, struct selinux_state *state,
+ 	int rc;
+ 	char *scontext;
+ 	u32 scontext_len;
+-#ifdef CONFIG_KSU_SUSFS
+-	struct selinux_audit_data sad;
+-#endif
+ 
+ 	rc = security_sid_to_context(state, ssid, &scontext, &scontext_len);
+ 	if (rc)
+@@ -198,7 +195,7 @@ static void avc_dump_query(struct audit_buffer *ab, struct selinux_state *state,
+ 
+ #ifdef CONFIG_KSU_SUSFS
+ 	if (static_branch_likely(&susfs_is_avc_log_spoofing_enabled)) {
+-		if (unlikely(sad.tsid == susfs_ksu_sid)) {
++		if (unlikely(tsid == susfs_ksu_sid)) { /* FIX: Use the parameter tsid */
+ 			if (rc)
+ 				audit_log_format(ab, " tsid=%d", susfs_priv_app_sid);
+ 			else
