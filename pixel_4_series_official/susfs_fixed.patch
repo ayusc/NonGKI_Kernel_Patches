@@ -56,3 +56,93 @@ index 958f67201..1f5a94aaa 100644
  			if (rc)
  				audit_log_format(ab, " tsid=%d", susfs_priv_app_sid);
  			else
+
+diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
+index 8728344b2..228decb5e 100644
+--- a/fs/notify/fdinfo.c
++++ b/fs/notify/fdinfo.c
+@@ -116,7 +116,7 @@ static void inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
+ 				goto orig_flow;
+ 			}
+ 			dpath = d_path(&file->f_path, pathname, PAGE_SIZE);
+-			if (!dpath) {
++			if (IS_ERR(dpath)) {
+ 				goto out_kfree;
+ 			}
+ 			if (kern_path(dpath, 0, &path)) {
+diff --git a/fs/proc/cmdline.c b/fs/proc/cmdline.c
+index aed87b4a9..270e41806 100644
+--- a/fs/proc/cmdline.c
++++ b/fs/proc/cmdline.c
+@@ -14,7 +14,7 @@ static int cmdline_proc_show(struct seq_file *m, void *v)
+ #ifdef CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+ 	if (static_branch_likely(&susfs_is_fake_cmdline_or_bootconfig_buffer_set)) {
+ 		susfs_spoof_cmdline_or_bootconfig(m);
+-		seq_printf(m, "%s\n");
++		seq_putc(m, '\n');
+ 		return 0;
+ 	}
+ #endif
+diff --git a/fs/proc/fd.c b/fs/proc/fd.c
+index 2c8a2dff2..e424d5249 100644
+--- a/fs/proc/fd.c
++++ b/fs/proc/fd.c
+@@ -84,7 +84,7 @@ static int seq_show(struct seq_file *m, void *v)
+ 			goto orig_flow;
+ 		}
+ 		dpath = d_path(&file->f_path, pathname, PAGE_SIZE);
+-		if (!dpath) {
++		if (IS_ERR(dpath)) {
+ 			goto out_kfree;
+ 		}
+ 		if (kern_path(dpath, 0, &path)) {
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index 5b4fdceb2..179587e52 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -371,7 +371,7 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+ 	dev_t dev = 0;
+ 	const char *name = NULL;
+ #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
+-	char *spoofed_redirected_name = NULL;
++	char *spoofed_redirected_name = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ #endif // #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
+ 
+ 	if (file) {
+diff --git a/fs/statfs.c b/fs/statfs.c
+index fa95afe37..18247d08e 100644
+--- a/fs/statfs.c
++++ b/fs/statfs.c
+@@ -98,16 +98,13 @@ int vfs_statfs(const struct path *path, struct kstatfs *buf)
+ #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+ 	if (likely(susfs_is_current_proc_umounted() && path->mnt)) {
+ 		no_sus_vfsmnt = susfs_get_non_sus_vfsmnt_from_vfsmnt(path->mnt);
+-		if (path->mnt == no_sus_vfsmnt) {
+-			dput(no_sus_vfsmnt->mnt_root);
+-			mntput(no_sus_vfsmnt);
++		/* FIX: Add NULL check and REMOVE the destructive dput/mntput calls */
++		if (!no_sus_vfsmnt || path->mnt == no_sus_vfsmnt) {
+ 			goto orig_flow;
+-	}
++		}
+ 		error = statfs_by_dentry(no_sus_vfsmnt->mnt_root, buf);
+ 		if (!error)
+ 			buf->f_flags = calculate_f_flags(no_sus_vfsmnt);
+-		dput(no_sus_vfsmnt->mnt_root);
+-		mntput(no_sus_vfsmnt);
+ 		return error;
+ 	}
+ #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+diff --git a/include/linux/susfs.h b/include/linux/susfs.h
+index 45c0f532b..a3b9ad21b 100644
+--- a/include/linux/susfs.h
++++ b/include/linux/susfs.h
+@@ -68,7 +68,7 @@ struct st_susfs_hide_sus_mnts_for_non_su_procs {
+ #define KSTAT_SPOOF_ATIME_TV_NSEC (1 << 5)
+ #define KSTAT_SPOOF_MTIME_TV_SEC (1 << 6)
+ #define KSTAT_SPOOF_MTIME_TV_NSEC (1 << 7)
+-#define KSTAT_SPOOF_CTIME_TV_SEC (1 < 8)
++#define KSTAT_SPOOF_CTIME_TV_SEC (1 << 8)
+ #define KSTAT_SPOOF_CTIME_TV_NSEC (1 << 9)
+ #define KSTAT_SPOOF_BLOCKS (1 << 10)
+ #define KSTAT_SPOOF_BLKSIZE (1 << 11)
