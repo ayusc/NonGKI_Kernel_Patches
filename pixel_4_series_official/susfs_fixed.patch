@@ -96,19 +96,6 @@ index 2c8a2dff2..e424d5249 100644
  			goto out_kfree;
  		}
  		if (kern_path(dpath, 0, &path)) {
-diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-index 5b4fdceb2..179587e52 100644
---- a/fs/proc/task_mmu.c
-+++ b/fs/proc/task_mmu.c
-@@ -371,7 +371,7 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
- 	dev_t dev = 0;
- 	const char *name = NULL;
- #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
--	char *spoofed_redirected_name = NULL;
-+	char *spoofed_redirected_name = kzalloc(PAGE_SIZE, GFP_KERNEL);
- #endif // #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
- 
- 	if (file) {
 diff --git a/fs/statfs.c b/fs/statfs.c
 index fa95afe37..18247d08e 100644
 --- a/fs/statfs.c
