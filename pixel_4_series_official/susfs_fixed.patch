@@ -105,7 +105,7 @@ index 5b4fdceb2..179587e52 100644
  	const char *name = NULL;
  #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
 -	char *spoofed_redirected_name = NULL;
-+	char *spoofed_redirected_name = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	char *spoofed_redirected_name = kzalloc(PAGE_SIZE, GFP_KERNEL);
  #endif // #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
  
  	if (file) {
