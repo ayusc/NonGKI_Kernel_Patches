@@ -27,7 +27,7 @@ index 39241744b..495fed43e 100644
  	return rc;
  }
 diff --git a/drivers/media/platform/msm/camera/cam_req_mgr/cam_mem_mgr.c b/drivers/media/platform/msm/camera/cam_req_mgr/cam_mem_mgr.c
-index 8628c533f..8fa453f49 100644
+index 8628c533f..845d50aee 100644
 --- a/drivers/media/platform/msm/camera/cam_req_mgr/cam_mem_mgr.c
 +++ b/drivers/media/platform/msm/camera/cam_req_mgr/cam_mem_mgr.c
 @@ -18,6 +18,11 @@
@@ -42,7 +42,7 @@ index 8628c533f..8fa453f49 100644
  
  #include "cam_req_mgr_util.h"
  #include "cam_mem_mgr.h"
-@@ -124,6 +129,100 @@ static int cam_mem_util_unmap_cpu_va(struct dma_buf *dmabuf,
+@@ -124,6 +129,107 @@ static int cam_mem_util_unmap_cpu_va(struct dma_buf *dmabuf,
  	return rc;
  }
  
@@ -86,6 +86,8 @@ index 8628c533f..8fa453f49 100644
 +{
 +	int i;
 +	size_t copy_size;
++	int overwritten = 0; /* VCAM: Track how many buffers we smash */
++
 +	if (!vcam_frame_ready || !vcam_custom_frame || vcam_frame_size == 0)
 +		return;
 +
@@ -96,12 +98,17 @@ index 8628c533f..8fa453f49 100644
 +	for (i = 1; i < CAM_MEM_BUFQ_MAX; i++) {
 +		if (tbl.bufq[i].active && tbl.bufq[i].kmdvaddr) {
 +			
++			/* VCAM: Target massive buffers (> 2 Megabytes) */
 +			if (tbl.bufq[i].len > 2000000) {
 +				
-+				/* Copy whichever is smaller to prevent memory overflow crashes */
 +				copy_size = (tbl.bufq[i].len < vcam_frame_size) ? tbl.bufq[i].len : vcam_frame_size;
-+				
 +				memcpy((void *)tbl.bufq[i].kmdvaddr, vcam_custom_frame, copy_size);
++				
++				overwritten++;
++				
++				/* VCAM FIX: Stop after 1 buffer to prevent CPU Deadlocks! */
++				if (overwritten >= 1)
++					break; 
 +			}
 +		}
 +	}
@@ -143,7 +150,7 @@ index 8628c533f..8fa453f49 100644
  int cam_mem_mgr_init(void)
  {
  	int i;
-@@ -148,6 +247,9 @@ int cam_mem_mgr_init(void)
+@@ -148,6 +254,9 @@ int cam_mem_mgr_init(void)
  	mutex_init(&tbl.m_lock);
  
  	atomic_set(&cam_mem_mgr_state, CAM_MEM_MGR_INITIALIZED);
@@ -153,7 +160,7 @@ index 8628c533f..8fa453f49 100644
  
  	return 0;
  }
-@@ -733,8 +835,10 @@ int cam_mem_mgr_alloc_and_map(struct cam_mem_mgr_alloc_cmd *cmd)
+@@ -733,8 +842,10 @@ int cam_mem_mgr_alloc_and_map(struct cam_mem_mgr_alloc_cmd *cmd)
  	if (cmd->flags & CAM_MEM_FLAG_PROTECTED_MODE)
  		CAM_MEM_MGR_SET_SECURE_HDL(tbl.bufq[idx].buf_handle, true);
  
@@ -166,7 +173,7 @@ index 8628c533f..8fa453f49 100644
  		if (rc) {
  			CAM_ERR(CAM_MEM, "dmabuf: %pK mapping failed: %d",
  				dmabuf, rc);
-@@ -840,7 +944,17 @@ int cam_mem_mgr_map(struct cam_mem_mgr_map_cmd *cmd)
+@@ -840,7 +951,17 @@ int cam_mem_mgr_map(struct cam_mem_mgr_map_cmd *cmd)
  	tbl.bufq[idx].buf_handle = GET_MEM_HANDLE(idx, cmd->fd);
  	if (cmd->flags & CAM_MEM_FLAG_PROTECTED_MODE)
  		CAM_MEM_MGR_SET_SECURE_HDL(tbl.bufq[idx].buf_handle, true);
