@@ -1,17 +1,18 @@
 --- a/kernel/supercall/dispatch.c
 +++ b/kernel/supercall/dispatch.c
-@@ -5,6 +5,10 @@
+@@ -4,6 +4,11 @@
+ #include <linux/string.h>
  #include <linux/uaccess.h>
  #include <linux/version.h>
- 
++
 +#include <linux/sched.h>
 +#include <linux/sched/signal.h>
 +#include <linux/init_task.h>
 +
- #include "uapi/supercall.h"
- #include "supercall/internal.h"
- #include "arch.h" // IWYU pragma: keep
-@@ -935,4 +939,4 @@
+ #ifdef CONFIG_KSU_SUSFS
+ #include <linux/namei.h>
+ #include <linux/susfs.h>
+@@ -968,4 +973,4 @@
          kfree(entry);
      }
      up_write(&mount_list_lock);
