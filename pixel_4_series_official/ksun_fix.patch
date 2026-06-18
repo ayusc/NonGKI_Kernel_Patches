@@ -1,19 +1,17 @@
-diff --git a/kernel/supercall/dispatch.c b/kernel/supercall/dispatch.c
-index 7b24c93f..491767d6 100644
 --- a/kernel/supercall/dispatch.c
 +++ b/kernel/supercall/dispatch.c
-@@ -4,6 +4,11 @@
- #include <linux/string.h>
+@@ -5,6 +5,10 @@
  #include <linux/uaccess.h>
  #include <linux/version.h>
-+
+ 
 +#include <linux/sched.h>
 +#include <linux/sched/signal.h>
 +#include <linux/init_task.h>
- 
++
  #include "uapi/supercall.h"
  #include "supercall/internal.h"
-@@ -968,4 +973,4 @@ void ksu_supercall_cleanup_state(void)
+ #include "arch.h" // IWYU pragma: keep
+@@ -935,4 +939,4 @@
          kfree(entry);
      }
      up_write(&mount_list_lock);
