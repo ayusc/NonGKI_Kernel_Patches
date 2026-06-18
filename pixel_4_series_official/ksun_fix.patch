@@ -1,0 +1,23 @@
+diff --git a/kernel/supercall/dispatch.c b/kernel/supercall/dispatch.c
+index 7b24c93f..491767d6 100644
+--- a/kernel/supercall/dispatch.c
++++ b/kernel/supercall/dispatch.c
+@@ -4,6 +4,11 @@
+ #include <linux/string.h>
+ #include <linux/uaccess.h>
+ #include <linux/version.h>
++
++#include <linux/sched.h>
++#include <linux/sched/signal.h>
++#include <linux/init_task.h>
++
+ #ifdef CONFIG_KSU_SUSFS
+ #include <linux/namei.h>
+ #include <linux/susfs.h>
+@@ -968,4 +973,4 @@ void ksu_supercall_cleanup_state(void)
+         kfree(entry);
+     }
+     up_write(&mount_list_lock);
+-}
+\ No newline at end of file
++}
