@@ -1,24 +1,21 @@
+cat << 'EOF' | sed 's/___TAB___/\t/g' > resukisu_fix.patch
 --- a/drivers/input/input.c
 +++ b/drivers/input/input.c
-@@ -425,21 +425,11 @@
-  * to 'seed' initial state of a switch or initial position of absolute
-  * axis, etc.
-  */
+@@ -395,7 +395,6 @@
 -#ifdef CONFIG_KSU
--extern bool ksu_input_hook __read_mostly;
--extern __attribute__((cold)) int ksu_handle_input_handle_event(
--			unsigned int *type, unsigned int *code, int *value);
+-___TAB___extern bool ksu_input_hook __read_mostly;
+-___TAB___extern __attribute__((cold)) int ksu_handle_input_handle_event(
+-___TAB______TAB______TAB___unsigned int *type, unsigned int *code, int *value);
 -#endif
  void input_event(struct input_dev *dev,
- 		 unsigned int type, unsigned int code, int value)
+@@ -408,11 +407,6 @@
  {
- 	unsigned long flags;
+  ___TAB___unsigned long flags;
  
--	
+-___TAB___
 -#ifdef CONFIG_KSU
--	if (unlikely(ksu_input_hook))
--		ksu_handle_input_handle_event(&type, &code, &value);
+-___TAB___if (unlikely(ksu_input_hook))
+-___TAB______TAB___ksu_handle_input_handle_event(&type, &code, &value);
 -#endif
- 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
- 
- 		spin_lock_irqsave(&dev->event_lock, flags);
+  ___TAB___if (is_event_supported(type, dev->evbit, EV_MAX)) {
+EOF
