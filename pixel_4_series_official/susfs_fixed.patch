@@ -33,30 +33,6 @@ index b4ba8a8ec..6c62ce1b4 100644
  	while (len) {
  		int bytes, ret, offset;
 
-diff --git a/security/selinux/avc.c b/security/selinux/avc.c
-index 958f67201..1f5a94aaa 100644
---- a/security/selinux/avc.c
-+++ b/security/selinux/avc.c
-@@ -182,9 +182,6 @@ static void avc_dump_query(struct audit_buffer *ab, struct selinux_state *state,
- 	int rc;
- 	char *scontext;
- 	u32 scontext_len;
--#ifdef CONFIG_KSU_SUSFS
--	struct selinux_audit_data sad;
--#endif
- 
- 	rc = security_sid_to_context(state, ssid, &scontext, &scontext_len);
- 	if (rc)
-@@ -198,7 +195,7 @@ static void avc_dump_query(struct audit_buffer *ab, struct selinux_state *state,
- 
- #ifdef CONFIG_KSU_SUSFS
- 	if (static_branch_likely(&susfs_is_avc_log_spoofing_enabled)) {
--		if (unlikely(sad.tsid == susfs_ksu_sid)) {
-+		if (unlikely(tsid == susfs_ksu_sid)) { /* FIX: Use the parameter tsid */
- 			if (rc)
- 				audit_log_format(ab, " tsid=%d", susfs_priv_app_sid);
- 			else
-
 diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
 index 8728344b2..228decb5e 100644
 --- a/fs/notify/fdinfo.c
@@ -70,6 +46,7 @@ index 8728344b2..228decb5e 100644
  				goto out_kfree;
  			}
  			if (kern_path(dpath, 0, &path)) {
+    
 diff --git a/fs/proc/fd.c b/fs/proc/fd.c
 index 2c8a2dff2..e424d5249 100644
 --- a/fs/proc/fd.c
@@ -83,6 +60,7 @@ index 2c8a2dff2..e424d5249 100644
  			goto out_kfree;
  		}
  		if (kern_path(dpath, 0, &path)) {
+   
 diff --git a/fs/statfs.c b/fs/statfs.c
 index fa95afe37..18247d08e 100644
 --- a/fs/statfs.c
@@ -107,6 +85,7 @@ index fa95afe37..18247d08e 100644
  		return error;
  	}
  #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+ 
 diff --git a/include/linux/susfs.h b/include/linux/susfs.h
 index 45c0f532b..a3b9ad21b 100644
 --- a/include/linux/susfs.h
