@@ -14,9 +14,9 @@ index c2b18176b..5b4fdceb2 100644
  #include <asm/elf.h>
  #include <asm/tlb.h>
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 1d6761a..d8fa21c 100644
---- a/fs/namei.c
+diff --git a/fs2/namei.c b/fs/namei.c
+index 0120e4b..d8fa21c 100644
+--- a/fs2/namei.c
 +++ b/fs/namei.c
 @@ -1710,24 +1710,23 @@ retry:
  		return ERR_PTR(-ENOMEM);
@@ -60,15 +60,6 @@ index 1d6761a..d8fa21c 100644
  #endif
  
  #ifdef CONFIG_KSU_SUSFS_SUS_PATH
-@@ -3927,7 +3926,7 @@ static struct file *path_openat(struct nameidata *nd,
- 				while (!(error = link_path_walk(new_s, nd)) &&
- 					(error = do_last(nd, file, op, &opened)) > 0) {
- 					nd->flags &= ~(LOOKUP_OPEN|LOOKUP_CREATE|LOOKUP_EXCL);
--					new_s = trailing_symlink(nd);
-+					s = trailing_symlink(nd);
- 					if (IS_ERR(s)) {
- 						error = PTR_ERR(s);
- 						break;
 
 diff --git a/fs/statfs.c b/fs/statfs.c
 index fa95afe..da2d69a 100644
